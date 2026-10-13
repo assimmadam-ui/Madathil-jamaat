@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="ml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b3824">
+<title>മദ്രസ നിർമ്മാണ ഫണ്ട് കണക്ക്</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root {
+  --primary: #0b3824;
+  --primary-light: #16794b;
+  --accent: #d6ad50;
+  --bg: #f4f7f4;
+  --surface: #ffffff;
+  --text-main: #142219;
+  --text-muted: #57685c;
+  --border: #d4e0d6;
+  --red: #c0392b;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text-main);
+  font-family: system-ui, -apple-system, "Noto Sans Malayalam", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Clean, consistent app styling */
+:focus-visible { outline: 2px solid #168653; outline-offset: 2px; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+main section { scroll-margin-top: 12px; }
+#entries article { border-color: #dbe6de; box-shadow: 0 2px 8px rgba(11,56,36,.045); transition: border-color .15s ease, box-shadow .15s ease; }
+#entries article:hover { border-color: #a9c8b4; box-shadow: 0 4px 12px rgba(11,56,36,.08); }
+#entries .entry-amount { display: block; width: 100%; box-sizing: border-box; overflow-wrap: anywhere; white-space: normal; }
+@media (max-width: 420px) {
+  header { padding-top: 1.25rem !important; padding-bottom: 1.75rem !important; }
+  #formPanel, main > section { border-radius: 1rem; }
+}
+
+header {
+  background: linear-gradient(135deg, #072517 0%, #0b3824 50%, #16794b 100%);
+}
+
+/* Printable PDF section styled explicitly for clean PDF export / printing */
+@media print {
+  @page { size: A4; margin: 12mm; }
+  body { background: #ffffff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #printablePdfArea { display: block !important; }
+  body * {
+    visibility: hidden;
+  }
+  #printablePdfArea, #printablePdfArea * {
+    visibility: visible;
+  }
+  #printablePdfArea {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 15px;
+    background: #ffffff;
+  }
+  #printablePdfArea table { page-break-inside: auto; }
+  #printablePdfArea thead { display: table-header-group; }
+  #printablePdfArea tr { page-break-inside: avoid; page-break-after: auto; }
+  #printablePdfArea th { background: #0b3824 !important; color: #fff !important; }
+  #printablePdfArea td, #printablePdfArea th { overflow-wrap: anywhere; }
+  .no-print { display: none !important; }
+}
+</style>
+</head>
+<body class="min-h-screen pb-16">
+
+<header class="text-white px-4 pt-6 pb-8 rounded-b-3xl shadow-lg text-center no-print">
+  <div class="text-xs font-bold tracking-widest text-emerald-200 uppercase mb-1">FUND REGISTER • MADRASA CONSTRUCTION</div>
+  <h1 class="text-xl sm:text-2xl font-extrabold leading-tight mb-1">വെളിച്ചത്തിന്റെ വഴിയിലേക്ക് കൈകോർത്തവർ<br>മദ്രസ നിർമ്മാണ ഫണ്ട്</h1>
+  <p class="text-xs sm:text-sm text-emerald-100 opacity-90">പണം • നിർമ്മാണ സാമഗ്രികൾ • സ്വർണം • തൊഴിൽ സംഭാവനകൾ</p>
+  <div class="mt-4 inline-flex flex-wrap justify-center gap-2 text-[11px] font-bold">
+    <span class="rounded-full bg-white/10 border border-white/20 px-3 py-1">പണവും സാധനങ്ങളും വേർതിരിച്ച കണക്ക്</span>
+    <span class="rounded-full bg-white/10 border border-white/20 px-3 py-1">PDF • CSV • ബാക്കപ്പ്</span>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto -mt-4 px-3">
+  
+  <section class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4 no-print" aria-label="ആകെ കണക്ക്">
+    <div class="col-span-2 bg-gradient-to-r from-white to-emerald-50 border border-emerald-200 rounded-2xl p-4 shadow-sm border-l-4 border-l-emerald-700">
+      <div class="text-xs text-gray-600 font-semibold">ആകെ പണമായി ലഭിച്ച തുക</div>
+      <div class="text-2xl font-black text-emerald-900 mt-1" id="cashTotal">₹0</div>
+    </div>
+    <div class="bg-white border border-emerald-100 rounded-2xl p-3 shadow-sm flex flex-col justify-center">
+      <div class="text-xs text-gray-500 font-medium">ആകെ സംഭാവനകൾ</div>
+      <div class="text-lg font-bold text-emerald-800 mt-0.5" id="entryTotal">0</div>
+    </div>
+    <div class="bg-white border border-emerald-100 rounded-2xl p-3 shadow-sm flex flex-col justify-center">
+      <div class="text-xs text-gray-500 font-medium">സിമെന്റ് (ചാക്ക്)</div>
+      <div class="text-lg font-bold text-emerald-800 mt-0.5" id="cementTotal">0</div>
+    </div>
+    <div class="bg-white border border-emerald-100 rounded-2xl p-3 shadow-sm flex flex-col justify-center">
+      <div class="text-xs text-gray-500 font-medium">കല്ല് (ലോഡ്)</div>
+      <div class="text-lg font-bold text-emerald-800 mt-0.5" id="stoneLoadTotal">0</div>
+    </div>
+    <div class="bg-white border border-emerald-100 rounded-2xl p-3 shadow-sm flex flex-col justify-center">
+      <div class="text-xs text-gray-500 font-medium">കല്ല് (എണ്ണം / കഷ്ണം)</div>
+      <div class="text-lg font-bold text-emerald-800 mt-0.5" id="stoneCountTotal">0</div>
+    </div>
+    <div class="bg-white border border-emerald-100 rounded-2xl p-3 shadow-sm flex flex-col justify-center">
+      <div class="text-xs text-gray-500 font-medium">കമ്പി (kg)</div>
+      <div class="text-lg font-bold text-emerald-800 mt-0.5" id="steelTotal">0</div>
+    </div>
+    <div class="bg-white border border-emerald-100 rounded-2xl p-3 shadow-sm flex flex-col justify-center">
+      <div class="text-xs text-gray-500 font-medium">സ്വർണവും പണിയും</div>
+      <div class="text-sm font-bold text-emerald-800 mt-1 leading-5" id="otherTotal">സ്വർണം: —<br>പണി: —</div>
+    </div>
+  </section>
+
+  <section class="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-5 shadow-sm mb-4 no-print" id="formPanel">
+    <h2 class="text-base sm:text-lg font-bold text-emerald-900 mb-3 flex items-center gap-2" id="formTitle">
+      ＋ പുതിയ സംഭാവന ചേർക്കുക
+    </h2>
+    <form id="donationForm">
+      <input type="hidden" id="editId">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-gray-700 mb-1" for="name">പേര് / സംഭാവന നൽകിയ വ്യക്തി അല്ലെങ്കിൽ കുടുംബം *</label>
+          <input id="name" required placeholder="ഉദാ: അബ്ദുറഹ്മാൻ" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1" for="type">സംഭാവനയുടെ തരം *</label>
+          <select id="type" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:border-emerald-600">
+            <option value="cash">പണം (₹)</option>
+            <option value="cement">സിമെന്റ് (ചാക്ക്)</option>
+            <option value="stone_load">കല്ല് (ലോഡ്)</option>
+            <option value="stone_count">കല്ല് (എണ്ണം / കഷ്ണം)</option>
+            <option value="steel">കമ്പി (kg)</option>
+            <option value="gold">സ്വർണം</option>
+            <option value="work">പണി / ശതമാനം (%)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-700 mb-1" for="amount">തുക / അളവ് *</label>
+          <input id="amount" inputmode="decimal" placeholder="ഉദാ: 50000" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-600">
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-bold text-gray-700 mb-1" for="detail">കൂടുതൽ വിവരങ്ങൾ (ഐച്ഛികം)</label>
+          <input id="detail" placeholder="ഉദാ: മൊത്തം നിർമ്മാണച്ചെലവിന്റെ 5% പണി" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-600">
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button class="bg-emerald-800 text-white font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-emerald-900 transition-all active:scale-95" type="submit" id="saveBtn">സംഭാവന ചേർക്കുക</button>
+        <button class="bg-gray-200 text-gray-800 font-bold px-4 py-2.5 rounded-xl text-sm transition-all active:scale-95" type="button" id="cancelEdit" style="display:none">തിരുത്തൽ റദ്ദാക്കുക</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-5 shadow-sm mb-4 no-print">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-base font-bold text-emerald-900">സംഭാവന പട്ടിക</h2>
+      <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full" id="shownCount">0 / 0</span>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4">
+      <div class="sm:col-span-1">
+        <label class="block text-xs font-bold text-gray-700 mb-1" for="search">പേര് തിരയുക</label>
+        <input id="search" placeholder="പേര് ടൈപ്പ് ചെയ്യുക…" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-emerald-600">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1" for="filterType">തരം അനുസരിച്ച്</label>
+        <select id="filterType" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-emerald-600">
+          <option value="all">എല്ലാം</option>
+          <option value="cash">പണം</option>
+          <option value="cement">സിമെന്റ്</option>
+          <option value="stone_load">കല്ല് (ലോഡ്)</option>
+          <option value="stone_count">കല്ല് (എണ്ണം)</option>
+          <option value="steel">കമ്പി</option>
+          <option value="gold">സ്വർണം</option>
+          <option value="work">പണി (%)</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-700 mb-1" for="sort">ക്രമീകരണം</label>
+        <select id="sort" class="w-full border border-gray-300 rounded-xl px-3 py-2 text-sm bg-white focus:outline-none focus:border-emerald-600">
+          <option value="number">നമ്പർ ക്രമത്തിൽ</option>
+          <option value="name">പേര് A–Z</option>
+          <option value="amount">തുക കൂടുതലിൽ നിന്ന്</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
+      <button class="bg-emerald-900 text-amber-300 font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm border border-amber-400 shadow-sm active:scale-95" id="printPdfBtn" type="button">📄 PDF ഡൗൺലോഡ് / സേവ്</button>
+      <button class="bg-gray-100 text-gray-800 font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm active:scale-95" id="csvBtn" type="button">📊 Excel CSV</button>
+      <button class="bg-gray-100 text-gray-800 font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm active:scale-95" id="backupBtn" type="button">ബാക്കപ്പ്</button>
+      <button class="bg-gray-100 text-gray-800 font-bold px-3 py-2.5 rounded-xl text-xs sm:text-sm active:scale-95" id="restoreBtn" type="button">തിരികെ എടുക്കുക</button>
+      <input id="restoreFile" type="file" accept=".json,application/json" class="hidden">
+    </div>
+    
+    <p class="text-xs text-gray-500 mt-3 leading-relaxed">
+      💡 <b>സൂചന:</b> "പ്രിന്റ് / PDF ആയി ഡൗൺലോഡ് ചെയ്യുക" അമർത്തുക. PDF-ൽ ക്രമനമ്പർ, പേര്, സംഭാവന / തുക / അളവ്, ഇനം തിരിച്ചുള്ള ആകെ കണക്ക് എന്നിവ ലഭിക്കും.
+    </p>
+  </section>
+
+  <section class="bg-white border border-emerald-100 rounded-2xl p-4 sm:p-5 shadow-sm no-print">
+    <div class="flex justify-between items-center mb-3">
+      <h2 class="text-base font-bold text-emerald-900">പൂർണ്ണ സംഭാവന രജിസ്റ്റർ</h2>
+      <span class="text-xs text-gray-500 font-medium" id="currentDateText"></span>
+    </div>
+    <div id="entries" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+  </section>
+</main>
+
+<div id="printablePdfArea" class="hidden sm:block" style="background: #ffffff; color: #111111; padding: 20px; font-family: system-ui, sans-serif;">
+  <div style="text-align: center; border-bottom: 2px solid #0b3824; padding-bottom: 12px; margin-bottom: 16px;">
+    <h1 style="font-size: 20px; font-weight: bold; color: #0b3824; margin: 0 0 4px 0;">വെളിച്ചത്തിന്റെ വഴിയിലേക്ക് കൈകോർത്തവർ</h1>
+    <p style="font-size: 12px; font-weight: 600; color: #555555; margin: 0;">മദ്രസ നിർമ്മാണ ഫണ്ട് സംഭാവന രജിസ്റ്റർ</p>
+  </div>
+
+  <table style="width: 100%; border-collapse: collapse; border: 1px solid #0b3824; font-size: 11px; margin-bottom: 16px;">
+    <thead>
+      <tr style="background-color: #0b3824; color: #ffffff;">
+        <th style="border: 1px solid #0b3824; padding: 7px; text-align: center; width: 8%; font-weight: bold;">നമ്പർ</th>
+        <th style="border: 1px solid #0b3824; padding: 7px; text-align: left; width: 57%; font-weight: bold;">പേര്</th>
+        <th style="border: 1px solid #0b3824; padding: 7px; text-align: left; width: 35%; font-weight: bold;">സംഭാവന / തുക / അളവ്</th>
+      </tr>
+    </thead>
+    <tbody id="pdfTableBody"></tbody>
+  </table>
+
+  <div style="background-color: #e8f3ec; border: 2px solid #0b3824; padding: 10px 14px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: bold; color: #0b3824; margin-bottom: 16px;">
+    <span>പണമായി രേഖപ്പെടുത്തിയ സംഭാവനകളുടെ ആകെ തുക:</span>
+    <span style="font-size: 15px; font-weight: 900;" id="pdfGrandTotalAmount">₹0</span>
+  </div>
+
+  <section style="margin: 0 0 16px; page-break-inside: avoid;">
+    <h2 style="font-size:14px;font-weight:800;color:#0b3824;margin:0 0 8px;border-left:4px solid #d6a642;padding:5px 8px;background:#f1f7f3;">സംഭാവനകളുടെ ഇനം തിരിച്ചുള്ള പ്രത്യേക കണക്ക്</h2>
+    <table style="width:100%;border-collapse:collapse;font-size:10px;margin-bottom:8px;">
+      <thead><tr style="background:#e7efe9;color:#123b29;">
+        <th style="border:1px solid #b8c9bd;padding:6px;text-align:left;">സംഭാവനയുടെ ഇനം</th>
+        <th style="border:1px solid #b8c9bd;padding:6px;text-align:right;">ആകെ അളവ് / വിശദാംശം</th>
+      </tr></thead>
+      <tbody id="pdfCategorySummary"></tbody>
+    </table>
+    <p style="font-size:9px;color:#4b5563;margin:0;">കുറിപ്പ്: വ്യത്യസ്ത യൂണിറ്റുകളിലുള്ള സംഭാവനകൾ തമ്മിൽ കൂട്ടിച്ചേർത്തിട്ടില്ല. സ്വർണവും 5% തൊഴിൽ സംഭാവനയും പ്രത്യേകം രേഖപ്പെടുത്തിയിരിക്കുന്നു; അവയുടെ രൂപമൂല്യം ഈ റിപ്പോർട്ടിൽ കണക്കാക്കിയിട്ടില്ല.</p>
+  </section>
+
+  <div style="text-align: center; font-size: 10px; color: #666666; border-top: 1px solid #dddddd; padding-top: 8px;" id="pdfFooterDate">
+    തയ്യാറാക്കിയ തീയതി: - · ഡിജിറ്റൽ മദ്രസ ഫണ്ട് രജിസ്റ്റർ
+  </div>
+</div>
+
+<div class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs px-5 py-3 rounded-full shadow-2xl hidden z-50 transition-all no-print" id="toast"></div>
+
+<div class="fixed inset-0 bg-black/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4 no-print" id="customModal">
+  <div class="bg-white p-5 rounded-2xl max-w-xs w-full shadow-xl">
+    <h3 class="text-base font-bold text-emerald-900 mb-1" id="modalTitle">സ്ഥിരീകരിക്കുക</h3>
+    <p class="text-xs text-gray-700 mb-4" id="modalMessage">തീരുമാനം ഉറപ്പാണോ?</p>
+    <div class="flex justify-end gap-2">
+      <button class="bg-gray-100 text-gray-800 text-xs font-bold px-4 py-2 rounded-xl" id="modalNoBtn" type="button">വേണ്ട</button>
+      <button class="bg-emerald-800 text-white text-xs font-bold px-4 py-2 rounded-xl" id="modalYesBtn" type="button">ശരി</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const initial = [
+  ["അബ്ദുറഹ്മാൻ s/o അബ്ദുല്ല", "cement", 100, "ചാക്ക് സിമെന്റ്"],
+  ["K H മൊയ്തു കല്ലുരാവി", "cash", 500000, ""],
+  ["അബൂബക്കർ മൂസ കുഞ്ഞി", "cement", 100, "ചാക്ക് സിമെന്റ്"],
+  ["മാനഫ് ഖാൻ", "cash", 500000, ""],
+  ["ശരീഫ് K C", "cash", 200000, ""],
+  ["നജീബ് കരിമ്പളപ്പ്", "cement", 50, "ചാക്ക് സിമെന്റ്"],
+  ["പോകറാലി", "stone_count", 1000, "കഷ്ണം കല്ല്"],
+  ["ശബാബ് മൂസ", "cement", 50, "ചാക്ക് സിമെന്റ്"],
+  ["നജാദ് c/o ഫാസിൽ", "cash", 10000, ""],
+  ["ഹാഷിം മൊയ്തു ഹാജി", "cement", 100, "ചാക്ക് സിമെന്റ്"],
+  ["ഫാസിൽ", "cash", 100000, ""],
+  ["സമീറ അബ്ദുറഹ്മാൻ", "cash", 10000, ""],
+  ["ആബിദ് അറബി", "cement", 50, "ചാക്ക് സിമെന്റ്"],
+  ["സൈഫുദ്ദീൻ മത്രോസ് ഹാജി", "cement", 50, "ചാക്ക് സിമെന്റ്"],
+  ["റഷീദ് C H", "cement", 50, "ചാക്ക് സിമെന്റ്"],
+  ["ഷാൻ നിയാസ് s/o അബ്ദുൽ കാദർ", "cash", 10000, ""],
+  ["കദീജ ഹംസ കല്ലുരാവി", "cement", 100, "ചാക്ക് സിമെന്റ്"],
+  ["മുഹമ്മദ് കുഞ്ഞി B അബ്ബാസ്", "cash", 50000, ""],
+  ["സലാം മൂസ ഹാജി", "cement", 25, "ചാക്ക് സിമെന്റ്"],
+  ["സജിന K C", "cash", 20000, ""],
+  ["ഷഹല ഇസ്മായിൽ C H", "stone_load", 1, "ഒരു ലോഡ് കല്ല്"],
+  ["നാസർ അറബി", "cash", 100000, ""],
+  ["മുജീബ് അബ്ദുറഹ്മാൻ", "cash", 50000, ""],
+  ["നിസാം s/o താജുദീൻ T H", "cement", 50, "ചാക്ക് സിമെന്റ്"],
+  ["സുഹറാബി c/o ഫാസിൽ", "cash", 5000, ""],
+  ["അഷറഫ് മുഹമ്മദ് ബക്കാർ", "cash", 25000, ""],
+  ["അബ്ദുല്ല മുഹമ്മദ് ബക്കാർ", "cement", 25, "ചാക്ക് സിമെന്റ്"],
+  ["സാറ അബ്ദുല്ല (മൊയ്തു ഹാജി)", "stone_load", 1, "ഒരു ലോഡ് കല്ല്"],
+  ["അബ്ദുൽ കാദർ കുഞ്ഞാമ്മദ്", "stone_count", 1000, "കല്ല്"],
+  ["അബ്ദുറഹ്മാൻ s/o കരീം", "cash", 25000, ""],
+  ["TEA CAFE", "stone_count", 500, "കല്ല്"],
+  ["മജീദ് സൗണ്ട് c/o സലീം", "cash", 2000, ""],
+  ["അബ്ദുൽ കാദർ s/o അബ്ദുല്ല ഹാജി", "work", 5, "മദ്രസാ നിർമ്മാണത്തിന്റെ ആകെ പണിയുടെ 5% — പണിയുടെ മൊത്തം തുക കണക്കാക്കിയ ശേഷം നിർവഹിക്കേണ്ട സംഭാവന"],
+  ["സിദീഖ് / ബഷീർ", "cash", 50000, ""],
+  ["ആഷിഖ് s/o കാസിം", "cash", 20000, ""],
+  ["നിയാസ് അബൂബക്കർ", "cash", 50000, ""],
+  ["ഹംസ അബ്ദുറഹ്മാൻ", "stone_count", 1000, "കല്ല്"],
+  ["അസ്‌ലം ലത്തീഫ്", "stone_count", 1000, "കല്ല്"],
+  ["കക്കുത്തിൽ കുഞ്ഞമ്മദ്", "stone_count", 500, "കല്ല്"],
+  ["പേര് വെളിപ്പെടുത്താത്ത വ്യക്തി", "gold", 1, "1 പവൻ + 490 മില്ലിഗ്രാം സ്വർണം"],
+  ["എറമുളാൻ ഫാമിലി", "cash", 50000, "കുടുംബാംഗങ്ങളുടെ സംഭാവനകൾ: ₹5,000 + ₹10,000 + ₹15,000 + ₹10,000 + ₹10,000 = ആകെ ₹50,000"],
+  ["ഹനീഫ s/o ഇബ്രാഹിം ഇല്യാസ് നഗർ", "steel", 250, "kg കമ്പി"],
+  ["K P അബ്ദുറഹ്മാൻ കാസിമിയ c/o K H മൊയ്തു", "cash", 100000, ""],
+  ["നൗഷാദ് മൂസ", "stone_count", 200, "200 കഷ്ണം ഒന്നാം നമ്പർ കല്ല്"],
+  ["മർഹും മദാർ, സുഹറ", "cash", 100000, ""],
+  ["ഉമ്മർ s/o പുച്ചക്കാട് അബ്ദുൽ ഖാദർ", "cash", 200000, ""],
+  ["മറിയം D/o പി.എം. മൊയ്ദു ഹാജി", "cash", 25000, ""],
+  ["പേര് വെളിപ്പെടുത്താത്ത വ്യക്തി c/o മൊയ്‌ദീൻ കല്ലൂരാവി", "cash", 200000, "സംഭാവന നൽകിയ വ്യക്തിയുടെ പേര് രേഖപ്പെടുത്തിയിട്ടില്ല"],
+  ["Abdul Khader Eramu Family c/o Shareef Abdul Khader", "cash", 50000, ""],
+  ["C/o Muhsin Moidu", "cash", 10000, ""],
+  ["Ashiq Rahman s/o Shafi", "cash", 50000, ""],
+  ["Muhsin s/o Moidu", "cash", 100000, ""],
+  ["Faisal s/o Moidu", "cash", 30000, ""],
+  ["Kareem s/o Mahin", "cash", 25000, ""],
+  ["Shahul s/o Ismail", "cash", 50000, ""],
+  ["Haseeb Khan", "cash", 50000, ""],
+  ["Jabir s/o Mohammad", "cash", 50000, ""],
+  ["Soopi Sadiq - Bilal", "cash", 50000, ""],
+  ["Basith s/o Abdul Khader", "cash", 100000, ""],
+  ["Naser s/o Abdul Khader", "cash", 100000, ""],
+  ["Haris s/o Abdul Khader", "cash", 100000, ""],
+  ["Haris s/o Moosa", "cash", 100000, ""],
+  ["Aboobacker s/o Muhammed Backer", "cash", 50000, ""],
+  ["Jaleel s/o Muhammed", "cash", 50000, ""],
+  ["C.A. Basheer", "cash", 200000, ""],
+  ["Shameem s/o Pokker Ali", "cash", 100000, ""],
+  ["Basheer Moidu", "cash", 100000, ""],
+  ["Khalid s/o Moopen Moidu", "cash", 25000, ""],
+  ["Ibrahim s/o Ismail", "cash", 10000, ""],
+  ["Hashim s/o Hassainar", "cash", 25000, ""],
+  ["നിസാം s/o മൊയ്തു കുർച്ചികാട് ഹസൈനാർ", "cash", 100000, ""],
+  ["റാഷിദ് കുവൈറ്റ്", "cash", 100000, ""],
+  ["ഫാറൂഖ് ടി എച്ച്", "cash", 25000, ""],
+  ["ശംസുദ്ദീൻ ഉസൈനാർ", "cash", 25000, ""],
+  ["Shahzad sheik s/o Ibrahim", "cash", 25000, ""]
+];
+
+const labels = {
+  cash: "പണം",
+  cement: "സിമെന്റ് (ചാക്ക്)",
+  stone_load: "കല്ല് (ലോഡ്)",
+  stone_count: "കല്ല് (എണ്ണം / കഷ്ണം)",
+  steel: "കമ്പി (kg)",
+  gold: "സ്വർണം",
+  work: "പണി / ശതമാനം",
+  other: "മറ്റുള്ളവ"
+};
+
+const units = {
+  cash: "₹",
+  cement: "ചാക്ക്",
+  stone_load: "ലോഡ്",
+  stone_count: "എണ്ണം",
+  steel: "kg",
+  gold: "പവൻ",
+  work: "%",
+  other: ""
+};
+
+let rows = [];
+let nextId = 1;
+const STORAGE_KEY = "madrasaFundV13";
+let confirmCallback = null;
+
+function showCustomConfirm(title, message, callback) {
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalMessage").textContent = message;
+  confirmCallback = callback;
+  const modal = document.getElementById("customModal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeCustomModal() {
+  const modal = document.getElementById("customModal");
+  modal.classList.remove("flex");
+  modal.classList.add("hidden");
+  confirmCallback = null;
+}
+
+document.getElementById("modalYesBtn").onclick = () => {
+  if (confirmCallback) confirmCallback();
+  closeCustomModal();
+};
+document.getElementById("modalNoBtn").onclick = closeCustomModal;
+
+function seedData() {
+  rows = initial.map((x, i) => ({
+    id: i + 1,
+    no: i + 1,
+    name: x[0],
+    type: x[1],
+    amount: x[2],
+    detail: x[3]
+  }));
+  nextId = rows.length + 1;
+}
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ rows, nextId }));
+  } catch(e) {}
+}
+
+function loadData() {
+  try {
+    const d = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (d && Array.isArray(d.rows)) {
+      rows = d.rows;
+      nextId = d.nextId || Math.max(0, ...rows.map(r => r.id)) + 1;
+      return;
+    }
+  } catch(e) {}
+  seedData();
+  saveData();
+}
+
+function fmt(n) {
+  return Number(n || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+}
+
+function money(n) {
+  return "₹" + fmt(n);
+}
+
+function safe(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+  setTimeout(() => el.classList.add("hidden"), 2500);
+}
+
+function getContributionText(r) {
+  // സംഭാവന നൽകിയവർ എഴുതിയ അളവും വിവരണവും ചുരുക്കാതെ കാണിക്കുക.
+  if (r.no === 41) return "ആകെ ₹50,000";
+  if (r.type === 'cash') return money(r.amount);
+  if (r.type === 'cement') return `${fmt(r.amount)} ചാക്ക് സിമെന്റ്`;
+  if (r.type === 'stone_load') return `${fmt(r.amount)} ലോഡ് കല്ല്`;
+  if (r.type === 'stone_count') {
+    if (r.no === 44) return "200 കഷ്ണം ഒന്നാം നമ്പർ കല്ല്";
+    if (r.no === 7) return "1000 കഷ്ണം കല്ല്";
+    return `${fmt(r.amount)} കല്ല്`;
+  }
+  if (r.type === 'gold' && r.detail) return r.detail;
+  if (r.type === 'work') return `${fmt(r.amount)}% പണി`;
+  if (r.type === 'steel') return `${fmt(r.amount)} kg കമ്പി`;
+  return `${fmt(r.amount)}${units[r.type] ? " " + units[r.type] : ""}`;
+}
+
+function render() {
+  const cashRows = rows.filter(r => r.type === "cash");
+  const sumCash = cashRows.reduce((a, r) => a + Number(r.amount || 0), 0);
+  const sumType = t => rows.filter(r => r.type === t).reduce((a, r) => a + Number(r.amount || 0), 0);
+
+  document.getElementById("cashTotal").textContent = money(sumCash);
+  document.getElementById("entryTotal").textContent = fmt(rows.length);
+  document.getElementById("cementTotal").textContent = fmt(sumType("cement")) + " ചാക്ക്";
+  document.getElementById("stoneLoadTotal").textContent = fmt(sumType("stone_load")) + " ലോഡ്";
+  document.getElementById("stoneCountTotal").textContent = fmt(sumType("stone_count")) + " എണ്ണം";
+  document.getElementById("steelTotal").textContent = fmt(sumType("steel")) + " kg";
+  
+  const goldRows = rows.filter(r => r.type === "gold");
+  const workRows = rows.filter(r => r.type === "work");
+  const goldText = goldRows.map(r => r.detail || getContributionText(r)).join("; ") || "ഇല്ല";
+  const workText = workRows.map(r => fmt(r.amount) + "% പണി").join("; ") || "ഇല്ല";
+  document.getElementById("otherTotal").innerHTML = "സ്വർണം: " + safe(goldText) + "<br>പണി: " + safe(workText);
+
+  const todayStr = new Date().toLocaleDateString("en-GB");
+  document.getElementById("currentDateText").textContent = "തീയതി: " + todayStr;
+
+  const q = document.getElementById("search").value.trim().toLowerCase();
+  const ft = document.getElementById("filterType").value;
+  const sort = document.getElementById("sort").value;
+
+  let list = rows.filter(r => {
+    const matchQuery = !q || r.name.toLowerCase().includes(q) || String(r.detail || "").toLowerCase().includes(q);
+    const matchType = (ft === "all" || r.type === ft);
+    return matchQuery && matchType;
+  });
+
+  if (sort === "name") {
+    list.sort((a, b) => a.name.localeCompare(b.name));
+  } else if (sort === "amount") {
+    list.sort((a, b) => Number(b.amount || 0) - Number(a.amount || 0));
+  } else {
+    list.sort((a, b) => a.no - b.no);
+  }
+
+  document.getElementById("shownCount").textContent = `${list.length} / ${rows.length}`;
+
+  const host = document.getElementById("entries");
+  if (!list.length) {
+    host.innerHTML = '<div class="col-span-2 text-center py-8 text-gray-500 text-sm">വിവരങ്ങളൊന്നും കണ്ടെത്തിയില്ല.</div>';
+  } else {
+    host.innerHTML = list.map(r => `
+      <article class="bg-white border border-gray-200 rounded-xl p-3.5 shadow-sm min-w-0">
+        <div class="flex items-start gap-2.5 min-w-0">
+          <div class="bg-emerald-50 text-emerald-900 border border-emerald-100 font-extrabold rounded-lg w-8 h-8 flex items-center justify-center text-xs shrink-0">${r.no}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-bold text-sm text-gray-900 leading-relaxed break-words [overflow-wrap:anywhere]">${safe(r.name)}</div>
+            <div class="text-[11px] text-gray-500 mt-1 leading-relaxed break-words [overflow-wrap:anywhere]">${labels[r.type] || "മറ്റുള്ളവ"}${r.detail && !(r.type === 'gold' && r.detail === getContributionText(r)) ? ' · ' + safe(r.detail) : ''}</div>
+          </div>
+        </div>
+        <div class="mt-3 rounded-lg bg-emerald-50/80 border border-emerald-100 px-3 py-2.5">
+          <div class="text-[10px] uppercase tracking-wide font-semibold text-emerald-800 mb-0.5">സംഭാവന</div>
+          <div class="entry-amount font-extrabold text-sm sm:text-base text-emerald-900 leading-relaxed">${safe(getContributionText(r))}</div>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-3 pt-2.5 border-t border-gray-100">
+          <button class="bg-emerald-50 text-emerald-800 font-bold px-3.5 py-1.5 rounded-lg text-xs hover:bg-emerald-100" onclick="editRow(${r.id})">തിരുത്തുക</button>
+          <button class="bg-red-50 text-red-700 font-bold px-3.5 py-1.5 rounded-lg text-xs hover:bg-red-100" onclick="deleteRow(${r.id})">നീക്കം ചെയ്യുക</button>
+        </div>
+      </article>
+    `).join("");
+  }
+
+  const sortedAll = rows.slice().sort((a, b) => a.no - b.no);
+  const pdfTableRows = sortedAll.map(r => `
+    <tr style="border-bottom: 1px solid #ddd;">
+      <td style="border: 1px solid #0b3824; padding: 5px; text-align: center; font-weight: bold; font-size: 10px;">${r.no}</td>
+      <td style="border: 1px solid #0b3824; padding: 5px; text-align: left; font-weight: bold; font-size: 10px;">${safe(r.name)}${r.no === 41 ? '<div style="font-weight:normal;margin-top:2px;">₹5,000 + ₹10,000 + ₹15,000 + ₹10,000 + ₹10,000 = ആകെ ₹50,000</div>' : ''}${r.no === 33 ? '<div style="font-weight:normal;margin-top:2px;">മദ്രസ നിർമ്മാണത്തിന്റെ മൊത്തം പണിയുടെ 5%</div>' : ''}${r.type === 'gold' && r.detail ? '<div style="font-weight:normal;margin-top:2px;">' + safe(r.detail) + '</div>' : ''}</td>
+      <td style="border: 1px solid #0b3824; padding: 5px; text-align: left; font-weight: bold; font-size: 10px; color: #0b3824;">${safe(getContributionText(r))}</td>
+    </tr>
+  `).join("");
+
+  document.getElementById("pdfTableBody").innerHTML = pdfTableRows;
+  const categorySummary = [
+    {type:"cement", title:"സിമെന്റ്", unit:"ചാക്ക്", value:fmt(sumType("cement")) + " ചാക്ക്"},
+    {type:"stone_load", title:"കല്ല് — ലോഡ്", unit:"ലോഡ്", value:fmt(sumType("stone_load")) + " ലോഡ്"},
+    {type:"stone_count", title:"കല്ല് — എണ്ണം / കഷ്ണം (ഒന്നാം നമ്പർ കല്ല് ഉൾപ്പെടെ)", unit:"കഷ്ണം", value:fmt(sumType("stone_count")) + " കഷ്ണം"},
+    {type:"steel", title:"കമ്പി", unit:"kg", value:fmt(sumType("steel")) + " kg"},
+    {type:"gold", title:"സ്വർണം", unit:"പ്രത്യേക അളവ്", value:rows.filter(r=>r.type==="gold").map(r=>r.detail || getContributionText(r)).join("; ") || "രേഖയില്ല"},
+    {type:"work", title:"തൊഴിൽ സംഭാവന", unit:"ശതമാനം", value:rows.filter(r=>r.type==="work").map(r=>fmt(r.amount)+"% — "+(r.detail || "പണി")).join("; ") || "രേഖയില്ല"}
+  ];
+  document.getElementById("pdfCategorySummary").innerHTML = categorySummary.map(c => {
+    return `<tr><td style="border:1px solid #b8c9bd;padding:6px;font-weight:700;">${safe(c.title)}</td><td style="border:1px solid #b8c9bd;padding:6px;text-align:right;">${safe(c.value)}</td></tr>`;
+  }).join("");
+  document.getElementById("pdfGrandTotalAmount").textContent = money(sumCash);
+  document.getElementById("pdfFooterDate").textContent = `തയ്യാറാക്കിയ തീയതി: ${todayStr} · ഡിജിറ്റൽ മദ്രസ ഫണ്ട് രജിസ്റ്റർ`;
+}
+
+document.getElementById("donationForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const id = Number(document.getElementById("editId").value);
+  const name = document.getElementById("name").value.trim();
+  const type = document.getElementById("type").value;
+  const amount = Number(document.getElementById("amount").value || 0);
+  const detail = document.getElementById("detail").value.trim();
+
+  if (!name) { toast("പേര് എഴുതുക"); return; }
+  if (amount <= 0) { toast("ശരിയായ തുക അല്ലെങ്കിൽ അളവ് നൽകുക"); return; }
+
+  if (id) {
+    const r = rows.find(x => x.id === id);
+    if (r) Object.assign(r, { name, type, amount, detail });
+    toast("വിവരങ്ങൾ പുതുക്കി!");
+  } else {
+    rows.push({
+      id: nextId++,
+      no: Math.max(0, ...rows.map(x => x.no)) + 1,
+      name, type, amount, detail
+    });
+    toast("പുതിയ സംഭാവന ചേർത്തു!");
+  }
+
+  saveData();
+  resetForm();
+  render();
+});
+
+function editRow(id) {
+  const r = rows.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById("editId").value = r.id;
+  document.getElementById("name").value = r.name;
+  document.getElementById("type").value = r.type;
+  document.getElementById("amount").value = r.amount;
+  document.getElementById("detail").value = r.detail || "";
+  
+  document.getElementById("formTitle").textContent = "തിരുത്തൽ വരുത്തുക";
+  document.getElementById("saveBtn").textContent = "മാറ്റങ്ങൾ സൂക്ഷിക്കുക";
+  document.getElementById("cancelEdit").style.display = "inline-flex";
+  document.getElementById("formPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function deleteRow(id) {
+  const r = rows.find(x => x.id === id);
+  if (!r) return;
+  showCustomConfirm("നീക്കം ചെയ്യുക", `“${r.name}” എന്ന വിവരങ്ങൾ നീക്കം ചെയ്യണോ?`, () => {
+    rows = rows.filter(x => x.id !== id);
+    saveData();
+    render();
+    toast("നീക്കം ചെയ്തു");
+  });
+}
+
+function resetForm() {
+  document.getElementById("donationForm").reset();
+  document.getElementById("editId").value = "";
+  document.getElementById("formTitle").textContent = "＋ പുതിയ സംഭാവന ചേർക്കുക";
+  document.getElementById("saveBtn").textContent = "സംഭാവന ചേർക്കുക";
+  document.getElementById("cancelEdit").style.display = "none";
+}
+
+window.editRow = editRow;
+window.deleteRow = deleteRow;
+
+document.getElementById("cancelEdit").onclick = resetForm;
+document.getElementById("search").addEventListener("input", render);
+document.getElementById("filterType").addEventListener("change", render);
+document.getElementById("sort").addEventListener("change", render);
+
+document.getElementById("printPdfBtn").onclick = () => {
+  window.print();
+};
+
+document.getElementById("csvBtn").onclick = () => {
+  const data = [
+    ["No", "Name", "Contribution", "Detail"],
+    ...rows.slice().sort((a, b) => a.no - b.no).map(r => [r.no, r.name, getContributionText(r), r.detail || ""])
+  ];
+  const csv = "\ufeff" + data.map(row => row.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(",")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+  a.download = "madrasa_fund_register.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+document.getElementById("backupBtn").onclick = () => {
+  const blob = new Blob([JSON.stringify({ rows, nextId }, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "madrasa_fund_backup.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+
+document.getElementById("restoreBtn").onclick = () => document.getElementById("restoreFile").click();
+
+document.getElementById("restoreFile").onchange = async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!Array.isArray(d.rows)) throw Error();
+    showCustomConfirm("ബാക്കപ്പ് എടുക്കൽ", "ബാക്കപ്പ് നിലവിലെ വിവരങ്ങളെ മാറ്റിസ്ഥാപിക്കട്ടെ?", () => {
+      rows = d.rows;
+      nextId = d.nextId || Math.max(0, ...rows.map(r => r.id)) + 1;
+      saveData();
+      render();
+      toast("ബാക്കപ്പ് വിവരങ്ങൾ തിരികെ ലഭിച്ചു!");
+    });
+  } catch(err) {
+    toast("ഈ ബാക്കപ്പ് ഫയൽ തുറക്കാൻ സാധിച്ചില്ല.");
+  }
+  e.target.value = "";
+};
+
+loadData();
+render();
+</script>
+</body>
+</html>
